@@ -1,0 +1,150 @@
+<HTML>
+<HEAD>
+
+<script type="text/javascript" src="prosodicharmony.js"></script>
+</HEAD>
+
+<BODY>
+<P ID="textpara">Hello</P>
+<SCRIPT>
+
+
+var Vowels = ["a","e","i","o","u","y"];	// "y?", "w?"
+var Consonants = ["b","c","d","f","g","h","j","k","l","m","n","p","q","r","s","t","v","w","x","z"];// ,"y","w" ?
+// these vowels & consonants should be a constant, or part of an object (or both?)
+
+var Vowels2Graph = ["aw","ew","iw","ow","ay","ey","oy","ei","oe","oo","oa","eu","yw"];
+var Vowels3Graph = ["www"];	// not really ?!
+
+// NB just about any consonant can be doubled
+var doubleConsonants = ["bb","cc","dd","ff","gg","hh","jj","kk","ll","mm","nn","pp","qq","rr","ss","tt","vv","ww","xx","zz"];
+
+var Consonants2Graph = ["bl","br","ch","cl","cr","cn","dh","fl","fr","gh","gl","gr","hw","nc","nd","nk","ns","pl","pr","qw","rd","kw","kn","ks","sc","st","sp","sk","tr","vl","vr","yw","ye"];
+var Consonants3Graph = ["spl","skw","","sqw","spr","dhr","thr","str","gwr","kwr","tth","ggh","ssh","yon","rth","rdh","yow","yer"];	// yon, yer special cases if at end of word
+
+var BreakingPunctuation = ["-"];
+var NonBreakingPunctuation = ["'"];
+
+
+
+
+//b, f, p, v -> 1 k?
+// c, g, j, k, q, s, x, z -> 2   w? h/0?
+// d, t -> 3
+// l -> 4
+// m, n -> 5
+// r -> 6
+
+// this list is pretty much the English language Soundex standard, tinkered with very little
+
+
+/*
+var Soundexesque = "0,w,h,1,b,f,v,p,2,c,g,j,k,q,s,x,y,z,3,d,t,4,l,5,m,n,6,r;";
+
+// 7,k,q,g (not 2) ?
+
+[w] = [0];//?
+[h] = [0];
+
+[b] = [1];
+[f] = [1];     
+[p] = [1];
+[v] = [1];
+        
+[c] = [2];
+[g] = [2];
+[j] = [2];
+[k] = [2];
+[q] = [2];
+[s] = [2];
+[x] = [2];
+[y] = [2];
+[z] = [2];
+
+[d] = [3];
+[t] = [3];
+[l] = [4];
+[m] = [5];
+[n] = [5];
+[r] = [6];
+[] = [];
+[] = [];
+[] = [];
+[] = [];
+[] = [];
+
+*/
+
+var phoneticText = "#   DEUS PATER\n   An Tas a Nev y'm gelwir,\n   formyer puptra a-vydh gwrys.\n   Onan ha tri on yn hwir,\n   an Tas ha'n Mab ha'n Spyrys,\n   ha hedhyw my a dhesir  5               \n   dre ow gras dalleth an bys.\n   Y lavarav, nev ha tir,\n   bedhens formyes orth ow brys.\n                                         Lemmyn pan yw nev dhyn gwrys\n   ha lenwys a eledh splann,  10          \n   ni a vynn formya an bys.\n   Par dell on Tri hag Onan,\n   an Tas ha'n Mab ha'n Spyrys.\n   Pur ryal yn sur sertan\n   an re ma yw oberys,    15              \n   dell vynnsyn agan honan.\n                                         Y'n sekond dydh y fynna'\n   gwruthyl ebrenn, nev henwys,\n   rag yth hevel dhymm bos da\n   y'n kynsa dydh myns eus gwrys. 20       \n   Bedhes ebrenn dres puptra\n   rag kudha myns eus formyes,\n   rag synsi glaw a-wartha,\n   dhe'n norvys may fo dyllys.\n ...ha nebes geryow moy a-dro dhe hemma, my a'n gor.";
+
+var phoneticTextDocument = new PhoneticTextDocument(phoneticText);
+var prosodicTextProcessor = new ProsodicTextProcessor();
+
+
+
+
+//split document stream string at word edges (\b[a-zA-Z\'\-]{1,10})
+
+
+var displayText = new DisplayText(phoneticTextDocument.getText());
+// declare DisplayText object and construct with lines of text
+//split document at new line [\n]  to get lines (in constructor)
+
+
+
+// NB problem here, had to rename counter from i to lineNumber - unforseen (scope?) problem whereby loop in called (splitting) function incremented namesake variable in calling function !
+for (lineNumber=0; lineNumber<displayText.getNumberOfLines(); lineNumber++)	// for every line in the text
+{	
+	var lineText = displayText.getLineByNumber(lineNumber);	// get each line of text
+	lineText = prosodicTextProcessor.splitTextToVocalAndNonVocal(lineText);	// split each line into array of elements vocalic and non-vocalic
+	displayText.setLineByNumber(lineNumber,lineText);	// split each line into elements vocalic and non-vocalic
+//	displayText.setLineByNumber(i,prosodicTextProcessor.splitTextToVocalAndNonVocal(displayText.getLineByNumber[i]));
+}
+
+//TO DO: go through each line, combining in an array each non-vocalic text and each syllable within it
+// must maintin syllable text graphic objects as properties (of a syllable object?) 
+// must record which syllables belong to which vocalic text (ie keep note of groups of syllables) to determine which syllable has stress
+
+// for each line, print each element: get text if non-vocalic, run through sylables if vocalic
+	var strText = "";
+	var blankCount = 0;
+for (lineNumber=0; lineNumber<displayText.getNumberOfLines(); lineNumber++)
+{
+ 	for (textNumber=0;textNumber < displayText.getLineByNumber(lineNumber).length; textNumber++)
+ 	{
+ 	 	if (displayText.getLineByNumber(lineNumber)[textNumber].constructor.name == "NonVocalicText")
+ 	 	{
+ 	 	 	strText = strText + displayText.getLineByNumber(lineNumber)[textNumber].getText(); 
+ 	 	}
+ 	 	else if (displayText.getLineByNumber(lineNumber)[textNumber].constructor.name == "VocalicText")
+ 	 	{	
+	 	 	for (syllableNumber=0;syllableNumber < displayText.getLineByNumber(lineNumber)[textNumber].getSyllables().length; syllableNumber++)
+	 	 	{
+		 	 	if (displayText.getLineByNumber(lineNumber)[textNumber].getSyllables()[syllableNumber].getText() =="")
+		 	 	{
+			 	 	blankCount++;
+		 	 	}
+		 	 	else
+		 	 	{
+	 	 		strText = strText + '|' + displayText.getLineByNumber(lineNumber)[textNumber].getSyllables()[syllableNumber].getText() + '|';
+		 	 	}
+	 	 	}
+ 	 	}
+ 	}
+ 	strText = strText + '\n';
+
+}
+
+strText = strText + '\nblankCount' + blankCount; 
+
+alert(strText);	// display string with syllables
+document.getElementById("textpara").innerHTML = strText;
+
+//alert(displayText.getLineByNumber(0)[0].constructor.name);
+
+// pass apostrophes & dashes straight on to syllable, but not include in onset, nucleus or coda
+
+
+</SCRIPT>
+</BODY>
+</HTML>
