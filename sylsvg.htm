@@ -1,0 +1,457 @@
+<HTML>
+<HEAD>
+<SCRIPT type="text/javascript" SRC="jquery-1.11.3.js"></SCRIPT>
+<SCRIPT type="text/javascript" SRC="raphael.js"></SCRIPT>
+<script type="text/javascript" src="prosodicharmony.js"></script>
+<STYLE>
+
+span.conjoined {
+	display: inline-block; 
+	margin-right: -4px;
+}
+
+svg.prosodicSVG {
+	position:relative;
+	top:0;
+	left:0;
+	width:50%;	
+}
+
+p.displaytext {	
+	font:Verdana;
+	font-size:30;
+	/*display:inline-block;*/ /* had to rem-ove this else text was falling at RHS of SVG block */
+	width:1200;
+}
+
+div.textpane{
+	position:absolute;
+	top:0;
+	left:0;
+	width:600;
+	height:800;
+/*	overflow-x:scroll;
+	overflow-y:scroll;*/
+	overflow:scroll;
+}	
+
+#rhymelabel{position : absolute; height : 20px; width : 20px; top : 40px; left: 1000px}
+#alliterationlabel{position : absolute; height : 20px; width : 20px; top : 80px; left: 1000px; color: #0000FF}
+#assonancelabel{position : absolute; height : 20px; width : 20px; top : 120px; left: 1000px; color: #00FF00}
+#consonancelabel{position : absolute; height : 20px; width : 20px; top : 160px; left: 1000px; color: #FF0000}
+
+#rhyme{position : absolute; height : 20px; width : 20px; top : 50px; left: 950px}
+#alliteration{position : absolute; height : 20px; width : 20px; top : 90px; left: 950px; color: #0000FF}
+#assonance{position : absolute; height : 20px; width : 20px; top : 130px; left: 950px; color: #00FF00}
+#consonance{position : absolute; height : 20px; width : 20px; top : 170px; left: 950px; color: #FF0000}
+
+#fulllabel{position : absolute; height : 20px; width : 400px; top : 250px; left: 1000px}
+#halflabel{position : absolute; height : 20px; width : 400px; top : 280px; left: 1000px}
+#quarterlabel{position : absolute; height : 20px; width : 400px; top : 310px; left: 1000px}
+#alllabel{position : absolute; height : 20px; width : 400px; top : 340px; left: 1000px}
+
+#full{position : absolute; height : 20px; width : 80px; top : 260px; left: 900px}
+#half{position : absolute; height : 20px; width : 80px; top : 290px; left: 900px}
+#quarter{position : absolute; height : 20px; width : 80px; top : 320px; left: 900px}
+#all{position : absolute; height : 20px; width : 80px; top : 350px; left: 900px}
+
+#files{position : absolute; height : 20px; width : 120px; top : 450px; left: 900px}
+
+<!-- need to get horizontal (left) positions of these in percent values -->
+
+</STYLE>
+</HEAD>
+
+<BODY>
+
+<!-- 2DO: browser compatibility,link to texts, box to line number, tidy to objects, design pattern classes, graph of line stats, overall graph of line stats, tabs, framework, recommend re-start at top, SVG save, sourcetree, tooltip on features? -->
+<!-- <P id="pnjlabel">Peter N Jenkin</P> -->
+<!-- <P id="filelabel">Select a file to quantify for prosodic harmony - should be in phonetic orthography (such as KK).</P> -->
+<!-- <P id="corpuslabel"><A HREF="http://www.howlsedhes.co.uk/kerneweg/" TARGET="corpus">Click here to open a link to Keith Bailey's middle Cornish corpus web site.</A></P> -->
+<!-- <P id="scrolllabel">Before loading a file, please scroll the page all the way back up to the top.</P> -->
+<!-- <P id="paraclicklabel">To see a line's statistics, click on that line.</P> -->
+
+
+<DIV id="controls" >
+<INPUT id="full" value ="1" name="limit" type="radio" checked /><P id="fulllabel">Full (100%) prosodic harmony strength only</P>
+<INPUT id="half" value ="0.5" name="limit" type="radio" /><P id="halflabel">Half (50%) prosodic harmony strength or more</P>
+<INPUT id="quarter" value ="0.25" name="limit" type="radio" /><P id="quarterlabel">Quarter (25%) prosodic harmony strength or more</P>
+<INPUT id="all" value ="0" name="limit" type="radio" /><P id="alllabel">Any and all prosodic harmony strength</P>
+
+<INPUT TYPE="checkbox" id="rhyme" /><P id="rhymelabel">Rhyme</P>
+<INPUT TYPE="checkbox" id="alliteration" /><P id="alliterationlabel">Alliteration</P>
+<INPUT TYPE="checkbox" id="assonance" /><P id="assonancelabel">Assonance</P>
+<INPUT TYPE="checkbox" id="consonance" /><P id="consonancelabel">Consonance</P>
+
+<INPUT id="files" type="file" name="files[]" />
+
+
+</DIV>
+
+<DIV id="textpane" class="textpane">
+
+<SVG id="prosodicSVG" class="prosodicSVG" height= "1000" width="100%">
+
+<!--  <polyline id="poly1" points="0,0 40,20" style="fill:none;stroke:#FF0000;"/>   -->
+
+</SVG>
+
+</DIV>
+
+
+
+<SCRIPT>
+
+/*  **************  global variables  **************  */   
+
+/*
+var Vowels = ["a","e","i","o","u","y"];	// "y?", "w?"
+var Consonants = ["b","c","d","f","g","h","j","k","l","m","n","p","q","r","s","t","v","w","x","z"];// ,"y","w" ?
+// these vowels & consonants should be a constant, or part of an object (or both?)
+
+var Vowels2Graph = ["aw","ew","iw","ow","ay","ey","oy","ei","oe","oo","oa","eu","yw","ya","ye"];	//ye? or not at beginning of word?
+var Vowels3Graph = ["www"];	// not really ?!
+
+// NB just about any consonant can be doubled
+var doubleConsonants = ["bb","cc","dd","ff","gg","hh","jj","kk","ll","mm","nn","pp","qq","rr","ss","tt","vv","ww","xx","zz"];
+
+var Consonants2Graph = ["bl","br","ch","cl","cr","cn","dh","fl","fr","gh","gl","gr","hw","nc","nd","nk","ns","pl","pr","qw","rd","kw","kn","ks","sc","st","sp","sk","tr","vl","vr","yw","ye"];
+var Consonants3Graph = ["spl","skw","","sqw","spr","dhr","thr","str","gwr","kwr","tth","ggh","ssh","yon","rth","rdh","yow","yer"];	// yon, yer special cases if at end of word (also yens? OM48, yas?)
+
+var BreakingPunctuation = ["-"];
+var NonBreakingPunctuation = ["'"];
+
+
+
+
+var Soundexesque = "0,h,1,b,f,v,p,2,c,g,j,k,q,3,d,t,4,l,5,m,6,n,7,r,8,w,9,s,x,z";
+
+var paper;
+
+
+var verticalSpace = 50;
+var verticalMargin = 120;
+var fontSize = 30;
+var lineY = 40;		// running total of vertical position of line
+
+var standardLeaderLineVerticalOffset = 4 // actually a fraction denominator - i.e. what fraction (how far) of vertical spacing above lines of text at which begin/end leader lines to syllables (4 : 1/4)
+ 
+
+var svg = document.getElementById('prosodicSVG');	// property of displaytext?
+var textPane = document.getElementById('textpane');	// property of displaytext?
+
+
+var prosodicVectorGraphicsStack = [];		// storage for instantiated DOM graphics (eg polylines) unused at present (maybe off-screen) but available for re-definition and re-use
+*/
+/*
+alliterationOffset = 1;
+assonanceOffset = 1;
+consonanceOffset = 1;
+*/
+
+
+
+var phoneticText = "#                      --------- ORIGO MUNDI ---------	\n# Keith Syed's Kernewek Kemmyn adaptation edited and translated by Ray Edwards\n	# Made by Jim Hall of Falmouth College between 29th January and 22 March 2001 \n	# See http://www.ordinalia.com\n	# ----------------------------------------------------------------------------\n\n	#                          HIC INCIPIT ORDINALE DE\n	#                              ORIGINE MUNDI. \n\n	#   DEUS PATER\n	   An Tas a Nev y'm gelwir,\n	   formyer puptra a vydh gwrys.\n	   Onan ha tri on yn gwir,\n	   an Tas ha'n Mab ha'n Spyrys,\n	   ha hedhyw my a dhesir                 #5\n	   dre ow gras dalleth an bys.\n	   Y lavarav, nev ha tir,\n	   bedhens formyes orth ow brys.\n	                                 \n    	   Lemmyn pan yw nev dhyn gwrys\n	   ha lenwys a eledh splann,            #10\n	   ni a vynn formya an bys.\n	   Par dell on Tri hag Onan,\n	   an Tas ha'n Mab ha'n Spyrys.\n	   Pur ryal yn sur sertan\n	   an re ma yw oberys,                  #15\n	   dell vynnsyn agan honan.\n	                                      \n	   Y'n sekond dydh y fynna'\n	   gwruthyl ebrenn, nev henwys,\n	   rag yth hevel dhymm bos da\n	   y'n kynsa dydh myns eus gwrys.        #20\n	   Bedhes ebrenn dres puptra\n	   rag kudha myns eus formyes,\n	   rag synsi glaw a-wartha,\n	   dhe'n norvys may fo dyllys.\n	                               \n      	   Y'n tressa dydh dibarth gwrav         #25\n	   yntra an mor ha'n tiryow,\n	   hag y'n tir gorhemmynnav\n	   may teffo gwydh ha losow.\n	   Pub gwydhenn teves a'y sav\n	   ow toen hy frut ha'y delyow,          #30\n	   ha'n losowys erbynn hav\n	   degens has yn erberow.\n	                          \n           	   Y'n peswara gwres perfeyth\n	   dhe'n bys oll golowys glan,\n	   ha'ga henwyn i a vydh                 #35\n	   an howl, ha'n loer, ha'n stergann.\n	   My a sett a-ugh an gwydh\n	   yn kres an ebrenn a-vann\n	   an loer yn nos, howl yn jydh,\n	   may rollons i golow splann.           #40\n	                                      \n	   Y'n pympes dydh my a vynn\n	   may fo formyes dre ow nell\n	   bestes, puskes hag ydhyn,\n	   tir ha mor dhe gollenwel,\n	   rag y hwyrvydh an termyn              #45\n	   dredha may fydher dhe well.\n	   Dhedha my a worhemmynn,\n	   ynkressyens ha bywens pell.\n	                               \n      	   Hedhyw yw an hweghves dydh\n	   a-ban dhallethis gonis,               #50\n	   may hwrug nev, mor, tir ha gwydh,\n	   bestes, puskes, golowys.\n	   Gostyth dhymmo i a vydh,\n	   kekemmys eus ynna gwrys.\n	   Mab-den a bri yn perfeyth             #55\n	   my a vynn y vos formyes.\n	                            \n         	   Dell on ni Onan ha Tri,\n	   Tas ha Mab yn Trynyta,\n	   ni a'th wra, ty dhen, a bri,\n	   haval dh'agan fas hware.              #60\n	   Ni a hwyth yn dha vodi\n	#  spyrys [may] hylli bywa,\n	   spyrys may hylli bywa,\n	   ha'n bywnans pan y'n kelli,\n	   dhe'n dor ty a dreyl arta.\n	                              \n       	   Adam, sav yn-bann yn klor,            #65\n	   ha treyl dhe gig ha dhe woes.\n	   Preder my dhe'th wul a dhor\n	   haval dhymm a'n penn dhe'n troes.\n	   Myns eus yn tir hag yn mor\n	   warnedha kemmer galloes.              #70\n	   Y'n bys ma rag dri askorr\n	   ty a vyw bys may fi loes.\n	                             \n        	   Adam, dell ov Dyw a ras,\n	   bos gwithyas a wrontyav dhis,\n	   war baradhis my a'th as.              #75\n	   Saw gwra unn dra a'm* govis.\n	   War bub frut, losow ha has\n	   a vo ynni hi tevys,\n	   saw a'n frut ny 'fydh kummyas\n	   yw prenn a skians henwys.             #80\n	                                      \n	   Mara tybrydh a henna\n	   yw henwys prenn a skians,\n	   yn-mes alemma ty a,\n	   hag a'fydh marow vernans.\n	                             \n        	#   ADAM\n	   A Das, Mab ha Spyrys Sans,            #85\n	   gordhyans dhe'th korf hweg pup-prys.\n	   Ow formya teg ha diblans\n	   ty re'm gwrug pur haval dhis.\n	                                 \n    	   Rag governya ow bywnans\n	   yma lowr orth bodh ow brys.           #90\n	   Pur leun yma dhymm ow hwans\n	   y'm be kowethes ord'nys.\n	#  y'm be [1](1) kowethes ord'nys.\n                                     	#   DEUS PATER\n	   Nyns yw da yn pur sertan\n	   bones unn den y honan\n	   heb koweth py kowethes.               95\n	   Ke, growedh war an dor glan\n	   ha kosk. Bydh na sav yn-bann\n	   erna vo kowethes gwrys.\n	                            \n	   \n	   Skon a onan a'th asow\n	   my a wra dhiso parow                 100\n	   pub eur oll rag dha weres.\n	   Adam, ottensi omma.\n	   Ri hanow dhedhi hi gwra,\n	   dhe'th par rag hy hemmeres.\n	                                \n  #   EVA\n	   Arloedh Dyw a'n Nev, an Tas,         105\n	   kepar dell os leun a ras\n	   vynytha gordhys re bi,\n	   dell wrussys *meur *a'm govis\n	   orth ow formya haval dhis.\nUnn Dyw os, ha Persons tri.          110";
+
+
+var phoneticTextDocument = new PhoneticTextDocument(phoneticText);
+var prosodicTextProcessor = new ProsodicTextProcessor();
+
+prosodicTextProcessor.setVowels(["a","e","i","o","u","y"]);
+prosodicTextProcessor.setConsonants(["b","c","d","f","g","h","j","k","l","m","n","p","q","r","s","t","v","w","x","z"]);		// PRESENTLY: read from global variables
+prosodicTextProcessor.setVowels2graph(["aw","ew","iw","ow","ay","ey","oy","ei","oe","oo","oa","eu","yw","ya","ye"]);	// TODO: import all these from CSV
+prosodicTextProcessor.setVowels3graph(["www"]);	// not really ?!
+prosodicTextProcessor.setDoubleConsonants(["bb","cc","dd","ff","gg","hh","jj","kk","ll","mm","nn","pp","qq","rr","ss","tt","vv","ww","xx","zz"]);
+prosodicTextProcessor.setConsonants2graph(["bl","br","ch","cl","cr","cn","dh","fl","fr","gh","gl","gr","hw","nc","nd","nk","ns","pl","pr","qw","rd","kw","kn","ks","sc","st","sp","sk","tr","vl","vr","yw","ye"]);
+prosodicTextProcessor.setConsonants3graph(["spl","skw","","sqw","spr","dhr","thr","str","gwr","kwr","tth","ggh","ssh","yon","rth","rdh","yow","yer"]);
+prosodicTextProcessor.setBreakingPunctuation(["-"]);			// inter-syllable breaking punctuation
+prosodicTextProcessor.setNonBreakingPunctuation(["'"]);	// intra-syllable non-breaking punctuation
+prosodicTextProcessor.setSoundexesque("0,h,1,b,f,v,p,2,c,g,j,k,q,3,d,t,4,l,5,m,6,n,7,r,8,w,9,s,x,z");	// intra-syllable non-breaking punctuation	
+
+prosodicTextProcessor.initialiseRegularExpressions();
+prosodicTextProcessor.setupSoundexesque();		// initialise Soundex-esque for this PT processor
+
+var prosodicTextDocument = new ProsodicTextDocument();
+
+
+//split document stream string at word edges (\b[a-zA-Z\'\-]{1,10})
+
+
+var displayText = new DisplayText(phoneticTextDocument.getText());
+// declare DisplayText object and construct with lines of text
+//split document at new line [\n]  to get lines (in constructor)
+
+	displayText.setVerticalSpace(50);
+	displayText.setVerticalMargin(120);
+	displayText.setFontSize(30);
+	displayText.setLineY(40);
+	displayText.setStandardLeaderLineVerticalOffset(4);
+	displayText.setSvg(document.getElementById('prosodicSVG'));
+	displayText.setTextPane(document.getElementById('textpane'));
+	displayText.setProsodicVectorGraphicsStack([]);		// storage for instantiated DOM graphics (eg polylines);; unused at present (maybe off-screen);; but available for re-definition and re-use
+
+
+
+//textPaneHeight = phoneticTextDocument.getText().split(/\n/).length * displayText.getVerticalSpace() + (4 * displayText.getVerticalMargin());
+// be a bit generous with vertical margin & vertical spacing
+
+
+// Set up events on page controls
+
+
+//http://stackoverflow.com/questions/25094773/settimeout-vs-debounce-plugin-to-defer-code-execution-on-events
+
+
+// scroll event for text pane div 
+var scroll_flag = true;		// permit scroll function flag
+
+      $(textpane).on('scroll',function() {       
+
+	if (scroll_flag)
+	{
+		setTimeout(function()
+			{
+				scanAllParagraphsForVisibility();
+				scroll_flag = true;	// set a flag as true after a delay
+			},500);	// 1000mS debounce delay - execute this after a debounce delay
+
+	}
+
+	scroll_flag = false;		// clear flag	
+
+	});	// end of textpane.onscroll function def	
+	       
+
+
+document.getElementById("rhyme").addEventListener("click", scanAllParagraphsForVisibility);
+document.getElementById("alliteration").addEventListener("click", scanAllParagraphsForVisibility);
+document.getElementById("assonance").addEventListener("click", scanAllParagraphsForVisibility);
+document.getElementById("consonance").addEventListener("click", scanAllParagraphsForVisibility);
+document.getElementById("full").addEventListener("click", scanAllParagraphsForVisibility);
+document.getElementById("half").addEventListener("click", scanAllParagraphsForVisibility);
+document.getElementById("quarter").addEventListener("click", scanAllParagraphsForVisibility);
+document.getElementById("all").addEventListener("click", scanAllParagraphsForVisibility);
+
+
+document.getElementById("files").addEventListener("change",handleFileSelection);
+
+
+
+
+
+
+initialise();
+
+function initialise()
+{
+	
+
+	//textPaneHeight = 8000;		// this should be proportional to number of lines read in text document (and to size of font, and to line spacing)
+//	textPaneHeight = (phoneticTextDocument.getText().split(/\n/).length * (displayText.getVerticalSpace() * 1.25)) + (4 * displayText.getVerticalMargin());
+	// be a bit generous with vertical margin & vertical spacing
+
+	//strText = "";
+	//blankCount = 0;
+
+	//syllableCount = 0;
+	//lineCount = 0;	
+
+	//prosodicLineNumber = 0;
+
+	//boolNewLine = true;
+
+	document.getElementById("rhyme").checked = false;				// reset user page controls
+	document.getElementById("alliteration").checked = false;
+	document.getElementById("assonance").checked = false;
+	document.getElementById("consonance").checked = false;
+	document.getElementById("full").checked = true;
+	document.getElementById("half").checked = false;
+	document.getElementById("quarter").checked = false;
+	document.getElementById("all").checked = false;
+
+		
+	while(displayText.getSvg().firstChild)
+	{
+		displayText.getSvg().removeChild(displayText.getSvg().firstChild);			// remove all existing childNodes of SVG
+	}
+	
+	// remove all paragraph childNodes of DIV
+
+	while(displayText.getTextPane().firstChild)
+	{
+		displayText.getTextPane().removeChild(displayText.getTextPane().firstChild);			// remove all existing childNodes of text pane DIV
+	}
+
+	displayText.setLineY(40);	// need this be changed??
+
+	displayText.setSvg(document.createElementNS('http://www.w3.org/2000/svg','svg'));		// re-create SVG element
+	displayText.getSvg().setAttribute('id','prosodicSVG');	// set id of SVG element, according to order
+	displayText.getSvg().className = "prosodicSVG";		// set class name (original huh)
+	displayText.getTextPane().appendChild(displayText.getSvg());			// append re-created SVG element as child Node to/within text pane DIV (ready for more graphics) 
+
+	//svgReference = document.createElementNS('http://www.w3.org/2000/svg','svg');		// try creating an SVG element not appended to document (outside flow?) to reduce reflow when creating SVG graphics therefrom
+
+	// http://joeloughton.com/blog/web-applications/svg-vs-canvas-performance/
+
+	
+
+	prosodicTextDocument = new ProsodicTextDocument();
+	displayText = new DisplayText(phoneticTextDocument.getText());
+
+	prosodicTextProcessor = new ProsodicTextProcessor();
+
+	prosodicTextProcessor.setVowels(["a","e","i","o","u","y"]);
+	prosodicTextProcessor.setConsonants(["b","c","d","f","g","h","j","k","l","m","n","p","q","r","s","t","v","w","x","z"]);		// PRESENTLY: read from global variables
+	prosodicTextProcessor.setVowels2graph(["aw","ew","iw","ow","ay","ey","oy","ei","oe","oo","oa","eu","yw","ya","ye"]);	// TODO: import all these from CSV
+	prosodicTextProcessor.setVowels3graph(["www"]);	// not really ?!
+	prosodicTextProcessor.setDoubleConsonants(["bb","cc","dd","ff","gg","hh","jj","kk","ll","mm","nn","pp","qq","rr","ss","tt","vv","ww","xx","zz"]);
+	prosodicTextProcessor.setConsonants2graph(["bl","br","ch","cl","cr","cn","dh","fl","fr","gh","gl","gr","hw","nc","nd","nk","ns","pl","pr","qw","rd","kw","kn","ks","sc","st","sp","sk","tr","vl","vr","yw","ye"]);
+	prosodicTextProcessor.setConsonants3graph(["spl","skw","","sqw","spr","dhr","thr","str","gwr","kwr","tth","ggh","ssh","yon","rth","rdh","yow","yer"]);
+	prosodicTextProcessor.setBreakingPunctuation(["-"]);			// inter-syllable breaking punctuation
+	prosodicTextProcessor.setNonBreakingPunctuation(["'"]);	// intra-syllable non-breaking punctuation
+	prosodicTextProcessor.setSoundexesque("0,h,1,b,f,v,p,2,c,g,j,k,q,3,d,t,4,l,5,m,6,n,7,r,8,w,9,s,x,z");	// intra-syllable non-breaking punctuation	
+
+	prosodicTextProcessor.initialiseRegularExpressions();
+	
+	prosodicTextProcessor.setupSoundexesque();		// initialise Soundex-esque for this PT processor
+
+
+
+	displayText.setVerticalSpace(50);
+	displayText.setVerticalMargin(120);
+	displayText.setFontSize(30);
+	displayText.setLineY(40);
+	displayText.setStandardLeaderLineVerticalOffset(4);
+	displayText.setSvg(document.getElementById('prosodicSVG'));
+	displayText.setTextPane(document.getElementById('textpane'));
+	displayText.setProsodicVectorGraphicsStack([]);		// storage for instantiated DOM graphics (eg polylines);; unused at present (maybe off-screen);; but available for re-definition and re-use
+	
+	
+	displayText.splitDisplayTextToVocalicAndNonVocalicSegments();	console.log('done splitDisplayTextToVocalicAndNonVocalicSegments' + new Date());
+	prosodicTextProcessor.buildSyllablesInProsodicLinesUsingDisplayText(displayText,prosodicTextDocument);	console.log('done buildSyllablesInProsodicLinesUsingDisplayText' + new Date());
+	//buildSyllablesInProsodicLinesUsingDisplayText();	console.log('done buildSyllablesInProsodicLinesUsingDisplayText' + new Date());
+	prosodicTextDocument.bulkProsodicDocumentProsodicChecks(prosodicTextProcessor);	console.log('done prosodicTextDocument.bulkProsodicDocumentProsodicChecks' + new Date());
+
+	//displayText.getSvg().style.height = textPaneHeight;					// set SVG panel height according to length of document (number of lines)
+	displayText.getSvg().style.height = (phoneticTextDocument.getText().split(/\n/).length * (displayText.getVerticalSpace() * 1.25)) + (4 * displayText.getVerticalMargin());					// set SVG panel height according to length of document (number of lines)
+	displayText.getSvg().style.width = '100%'; 							// SVG set to be full width of parent node (which is the text pane DIV)
+	//drawTextInPane(displayText,prosodicTextDocument);								console.log('done drawTextInPane' + new Date());
+	displayText.generateDisplayTextGraphicsFromDisplayTextAndProsodicText(prosodicTextDocument);	 
+
+	scanAllParagraphsForVisibility();
+	
+}		// end of initialise function
+
+
+
+
+
+debugger;
+
+
+
+
+//**********************************************************
+//******************** drawTextInPane **********************
+function drawTextInPane(displayTextDoc,prosodicTextDoc)
+{
+
+// has to be in the BODY (if Raphael)
+// not sure if this wrapper function needed any more 1/2/16
+
+	displayTextDoc.generateDisplayTextGraphicsFromDisplayTextAndProsodicText(prosodicTextDoc);	
+	
+	//compileCompositeProsodicVectorGraphics();
+//********************** IMPORTANT !!
+// http://stackoverflow.com/questions/2124763/raphael-js-and-text-positioning
+}	// end of drawTextInPane	(or draw text in pain?!?) function
+
+
+
+
+function handleFileSelection(event)
+{
+
+	// a function to handle file i/o in connection with this page
+	
+	// TODO: make this asynchronous
+	
+	displayText.getTextPane().scrollTop = 0;		// scroll text pane to top, ready to load (else svg graphics tend to be out of sync with text)
+	
+	var files = event.target.files;	// <INPUT> (type=file) returns a FileList object
+	var encoding = "UTF-8";
+
+
+	var reader = new FileReader();
+
+	reader.onload = function(theFile)		// declaration of asynchronous event listener function   
+			{
+				var text = reader.result;
+				phoneticTextDocument.setText(text);
+				initialise();			// reinitialise document page
+			}
+
+	reader.readAsText(files[0],encoding);	// read first file in list selected (ideally therefore only allow 1 file to be selected)
+	
+}		// end of handleFileSelection
+
+
+
+
+
+
+
+
+// (jQuery) at end within {} is making the inside of {} an anonymous function wherein $ is jquery, but not outside -  http://stackoverflow.com/questions/2464635/what-does-function-jquery-do-mean
+
+	// might need to have p.scrolling & ---- incoming paragraphs: run through & list all syllables in this para (how?), run through all vectors & test origin & destination syllables - if match, check for drawn already, check for visibility & draw if so
+	// newly seen paragraphs (incoming)
+	// link <p> to displaytext line and to prosodictextline (if syllables)  
+	
+	// need to get scrolling-sensitive binding function called again after initialise, so that new paragraphs also are scroll-sensitive
+
+	
+function scanAllParagraphsForVisibility()
+{
+
+	// function - scans all HTML paragraphs in DIV with id 'textpane', to calculate whether they are in view, and therefore whether their 
+	// NB 1 of 2 places in which moveParagraphProsodicVectorGraphicsToGraphicsStack could be called(the other is within showSelectedParagraphProsodicVectorsUsingGraphicsStack, for vector/prosodic link graphics which are drawn but no longer required)
+
+	// a function particular to the web page - although referring to DisplayText and ProsodicText- perhaps 
+	
+	var factorOfSafety = 1.5;		// extra bit to multiply/exaggerate height to try to avoid magically disappearing links 	
+	
+	var containingTop = $(textpane).scrollTop();
+	var containingBottom = $(textpane).height()  * factorOfSafety + containingTop;		// style.height won't work for dynamically resized element, so jQuery needed
+
+	var displayParagraphs = document.getElementsByClassName('displaytext');
+
+	
+	for (var i = 0; i < displayParagraphs.length; i++)
+	{
+		// test to see whether displayParagraph within view (ie its bottom farther down than container's top, and its top less far down than bottom of container 
+		if ( ( ( Number($(displayParagraphs[i]).css('top').substring(0,$(displayParagraphs[i]).css('top').length - 2)) + Number($(displayParagraphs[i]).css('height').substring(0,$(displayParagraphs[i]).css('height').length - 2)) ) > containingTop ) && ( Number($(displayParagraphs[i]).css('top').substring(0,$(displayParagraphs[i]).css('top').length - 2)) < containingBottom ) )
+		{		// if within view
+			displayText.showSelectedParagraphProsodicVectorsUsingGraphicsStack(i,prosodicTextDocument);	// perhaps show this paragraph's prosodic vectors/links depending on user settings &c (wrt to Prosodic Text Document also)
+
+console.log('IN VIEW: ' + displayParagraphs[i].innerHTML);			
+		}
+		else	// else if outside visible area, recycle all of this paragraph's vectors' graphics
+		{
+console.log('OUT OF VIEW: ' + displayParagraphs[i].innerHTML);
+			displayText.moveParagraphProsodicVectorGraphicsToGraphicsStack(i,prosodicTextDocument);	 // definitely move all of this paragraph's vectors/prosodic links to graphics stack (wrt to Prosodic Text Document also)
+		}	// 29/1/16 - problem with disappearing lines seems to cease when this 'recycling' line REMmed
+	}
+	
+}	// end of scanAllParagraphsForVisibility function
+
+
+
+
+	      
+</SCRIPT>
+
+
+
+</BODY>
+</HTML>	
